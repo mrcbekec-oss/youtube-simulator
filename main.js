@@ -23,6 +23,13 @@ let state = {
     lastUpdate: Date.now()
 };
 
+// Display State for smooth counting
+let displayState = {
+    subs: 0,
+    views: 0,
+    money: 0
+};
+
 // Upgrade Definitions
 const UPGRADES = {
     camera: [
@@ -92,6 +99,26 @@ function init() {
     setInterval(gameTick, 1000);
     
     setupEventListeners();
+    
+    // Animation Loop for smooth counters
+    requestAnimationFrame(updateDisplayLoop);
+}
+
+function updateDisplayLoop() {
+    const lerp = (start, end, amt) => (1 - amt) * start + amt * end;
+    const speed = 0.05; // Smoothing factor
+    
+    displayState.subs = lerp(displayState.subs, state.subs, speed);
+    displayState.views = lerp(displayState.views, state.views, speed);
+    displayState.money = lerp(displayState.money, state.money, speed);
+    
+    // Close enough? Snap to actual value
+    if (Math.abs(displayState.subs - state.subs) < 0.1) displayState.subs = state.subs;
+    if (Math.abs(displayState.views - state.views) < 0.1) displayState.views = state.views;
+    if (Math.abs(displayState.money - state.money) < 0.01) displayState.money = state.money;
+    
+    updateUI();
+    requestAnimationFrame(updateDisplayLoop);
 }
 
 function setupEventListeners() {
@@ -222,12 +249,17 @@ function buyUpgrade(category, level) {
 }
 
 function gameTick() {
-    // Passive View generation (Small growth)
-    const passiveSubs = Math.floor(state.subs * 0.001); // 0.1% growth per second
+    // Passive View generation (Very small growth from old videos)
+    const passiveViews = Math.floor(state.views * 0.0001); 
+    state.views += passiveViews;
+
+    // Passive Sub growth based on total views and mic/retention
+    const micRetention = UPGRADES.mic[state.upgrades.mic - 1].retention;
+    const passiveSubs = Math.floor((state.views * 0.00001) * micRetention); 
     if (passiveSubs > 0) state.subs += passiveSubs;
 
     // Passive Money (Ads on total views)
-    const passiveMoney = (state.views * 0.0001); // ₺0.1 per 1000 views per tick
+    const passiveMoney = (state.views * 0.00005); // ₺0.05 per 1000 views per tick
     state.money += passiveMoney;
     
     updateUI();
@@ -236,9 +268,9 @@ function gameTick() {
 // --- UI / Helper Functions ---
 
 function updateUI() {
-    elements.subs.innerText = formatNumber(state.subs);
-    elements.views.innerText = formatNumber(state.views);
-    elements.money.innerText = "₺" + formatNumber(Math.floor(state.money));
+    elements.subs.innerText = formatNumber(Math.floor(displayState.subs));
+    elements.views.innerText = formatNumber(Math.floor(displayState.views));
+    elements.money.innerText = "₺" + formatNumber(displayState.money.toFixed(2));
     elements.totalVideos.innerText = state.totalVideos;
     elements.dailyIncome.innerText = "₺" + formatNumber((state.views * 0.001).toFixed(2));
     
@@ -333,9 +365,11 @@ function getIconForCategory(cat) {
 }
 
 function formatNumber(num) {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
+    const n = parseFloat(num);
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 10000) return (n / 1000).toFixed(1) + 'K';
+    if (n >= 1000) return n.toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+    return n.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 function createFloatingText(x, y, text) {
