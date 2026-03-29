@@ -11,6 +11,7 @@ let state = {
     progress: 0,
     rawFootage: 0,
     editedFootage: 0,
+    activeVideos: [], // New: List of videos currently gaining views
     
     // Upgrades
     upgrades: {
@@ -217,24 +218,63 @@ function finishVideo() {
     state.progress = 0;
     state.totalVideos++;
     
-    // Calculate gains
+    // Calculate potential gains (K value in logistic growth)
     const camQuality = UPGRADES.camera[state.upgrades.camera - 1].quality;
-    const micRetention = UPGRADES.mic[state.upgrades.mic - 1].retention;
+    const subBoost = 1 + (state.subs / 500); // 100% boost at 500 subs
+    const potentialViews = (100 + Math.random() * 200) * camQuality * subBoost;
     
-    // Logic: Quality affects views, Subs give a base boost
-    const baseViews = (50 + Math.random() * 100) * camQuality;
-    const subBoost = 1 + (state.subs / 1000); // 100% boost at 1000 subs
-    const newViews = Math.floor(baseViews * subBoost);
+    // Add to active videos to start the "real-life" growth process
+    const newVideo = {
+        id: Date.now(),
+        publishTime: Date.now(),
+        capacity: potentialViews,
+        currentViews: 0,
+        r: 0.1 + Math.random() * 0.2, // Growth rate (0.1 to 0.3)
+        a: 50 + Math.random() * 100,  // Initial offset
+        lastCheckTime: Date.now()
+    };
     
-    const newSubs = Math.floor(newViews * 0.05 * micRetention);
-    const instantMoney = newViews * 0.01; // ₺10 per 1000 views (instant ad revenue)
+    state.activeVideos.push(newVideo);
     
-    state.views += newViews;
-    state.subs += newSubs;
-    state.money += instantMoney;
-    
-    showNotification(`Video Yayında! +${formatNumber(newViews)} İzlenme, +${formatNumber(newSubs)} Abone, +₺${instantMoney.toFixed(2)}`, "success");
+    showNotification("Video Yayında! Algoritma videonu işliyor...", "success");
     updateUI();
+}
+
+function updateActiveVideos() {
+    const now = Date.now();
+    let totalNewViews = 0;
+    let totalNewSubs = 0;
+    let totalNewMoney = 0;
+
+    state.activeVideos = state.activeVideos.filter(video => {
+        const t = (now - video.publishTime) / 1000; // time in seconds
+        
+        // Logistic Growth Formula: V(t) = K / (1 + A * e^(-rt))
+        const cumulativeViews = video.capacity / (1 + video.a * Math.exp(-video.r * t));
+        const deltaViews = Math.max(0, cumulativeViews - video.currentViews);
+        
+        if (deltaViews > 0.1) {
+            video.currentViews = cumulativeViews;
+            totalNewViews += deltaViews;
+            
+            // User requested: 35% - 45% chance for new subs from views
+            const subRate = 0.35 + (Math.random() * 0.10);
+            totalNewSubs += deltaViews * subRate;
+            
+            // Money also scale with views
+            totalNewMoney += deltaViews * 0.01;
+            
+            // If we reached 98% of capacity, consider the video "done" growing actively
+            return cumulativeViews < video.capacity * 0.98;
+        }
+        
+        // If not growing significantly, remove from active processing
+        return false;
+    });
+
+    state.views += totalNewViews;
+    state.subs += totalNewSubs;
+    state.money += totalNewMoney;
 }
 
 function buyUpgrade(category, level) {
@@ -249,17 +289,11 @@ function buyUpgrade(category, level) {
 }
 
 function gameTick() {
-    // Passive View generation (Very small growth from old videos)
-    const passiveViews = Math.floor(state.views * 0.0001); 
-    state.views += passiveViews;
+    // Process active videos (S-Curve growth)
+    updateActiveVideos();
 
-    // Passive Sub growth based on total views and mic/retention
-    const micRetention = UPGRADES.mic[state.upgrades.mic - 1].retention;
-    const passiveSubs = Math.floor((state.views * 0.00001) * micRetention); 
-    if (passiveSubs > 0) state.subs += passiveSubs;
-
-    // Passive Money (Ads on total views)
-    const passiveMoney = (state.views * 0.00005); // ₺0.05 per 1000 views per tick
+    // Small passive money from all old views
+    const passiveMoney = (state.views * 0.00001); 
     state.money += passiveMoney;
     
     updateUI();
@@ -400,6 +434,7 @@ function loadGame() {
     const saved = localStorage.getItem('yt_sim_save');
     if (saved) {
         state = { ...state, ...JSON.parse(saved) };
+        if (!state.activeVideos) state.activeVideos = [];
     }
 }
 
