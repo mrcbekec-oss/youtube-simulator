@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>YouTube Simulator - Bir Yıldız Doğuyor!</title>
+    <meta name="description" content="Kendi YouTube kanalını yönet, videolar çek, montajla ve dünya çapında bir fenomen ol! En iyi YouTube simülasyon oyunu.">
+    
+    <!-- Google Fonts: Inter & Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="dark-theme">
+        <!-- Header / Stats Bar -->
+        <header class="stats-bar">
+            <div class="stat-item" id="stat-subs">
+                <i data-lucide="users"></i>
+                <span class="value">0</span>
+                <span class="label">Abone</span>
+            </div>
+            <div class="stat-item" id="stat-views">
+                <i data-lucide="eye"></i>
+                <span class="value">0</span>
+                <span class="label">İzlenme</span>
+            </div>
+            <div class="stat-item" id="stat-money">
+                <i data-lucide="dollar-sign"></i>
+                <span class="value">₺0</span>
+                <span class="label">Para</span>
+            </div>
+        </header>
+
+        <main class="game-container">
+            <!-- Left Panel: Actions -->
+            <section class="action-panel">
+                <div class="video-status-card glass">
+                    <h1 id="video-title">Yeni Video Projesi</h1>
+                    <div class="progress-container">
+                        <div class="progress-bar-wrapper">
+                            <div id="main-progress" class="progress-fill"></div>
+                        </div>
+                        <p id="status-text">Video Çekmeye Hazır!</p>
+                    </div>
+                    
+                    <div class="main-buttons">
+                        <button id="btn-record" class="btn primary big">
+                            <i data-lucide="video"></i>
+                            <span>KAYDET</span>
+                        </button>
+                        <button id="btn-edit" class="btn secondary big hidden">
+                            <i data-lucide="scissors"></i>
+                            <span>MONTAJLA</span>
+                        </button>
+                        <button id="btn-upload" class="btn success big hidden">
+                            <i data-lucide="upload-cloud"></i>
+                            <span>YAYINLA</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="channel-info glass">
+                    <h2>Kanal İstatistikleri</h2>
+                    <div class="mini-stats">
+                        <div class="mini-stat">
+                            <span class="label">Yayınlanan Videolar:</span>
+                            <span id="total-videos" class="value">0</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="label">Günlük Gelir:</span>
+                            <span id="daily-income" class="value">₺0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Shop/Upgrades -->
+            <section class="upgrade-panel glass">
+                <div class="tabs">
+                    <button class="tab active" data-tab="gear">Ekipman</button>
+                    <button class="tab" data-tab="studio">Stüdyo</button>
+                    <button class="tab" data-tab="skills">Yetenekler</button>
+                </div>
+
+                <div class="tab-content active" id="tab-gear">
+                    <div class="upgrade-list" id="gear-list">
+                        <!-- Upgrades will be injected here by JS -->
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-studio">
+                    <div class="upgrade-list" id="studio-list">
+                        <!-- Studio items here -->
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-skills">
+                    <div class="upgrade-list" id="skills-list">
+                        <!-- Skills here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Notification Center -->
+        <div id="notifications"></div>
+        
+        <!-- Mobile Navigation (Bottom) -->
+        <nav class="mobile-nav">
+            <button class="nav-item active" data-target="action-panel">
+                <i data-lucide="play-circle"></i>
+                <span>Oyna</span>
+            </button>
+            <button class="nav-item" data-target="upgrade-panel">
+                <i data-lucide="shopping-bag"></i>
+                <span>Mağaza</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Initialization and Main Logic -->
+    <script src="main.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+:root {
+    --primary-color: #ff0000; /* YouTube Red */
+    --primary-hover: #cc0000;
+    --bg-dark: #0f0f0f;
+    --bg-card: #1e1e1e;
+    --text-main: #ffffff;
+    --text-muted: #aaaaaa;
+    --border-color: #333333;
+    --accent-color: #3ea6ff;
+    --success-color: #2ba640;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --transition-speed: 0.3s;
+    --sidebar-width: 320px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    overflow: hidden; /* Prevent scrolling, use fixed layout */
+    height: 100vh;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Stats Bar */
+.stats-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--bg-dark);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 10;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.stat-item i {
+    width: 20px;
+    height: 20px;
+}
+
+#stat-subs i { color: var(--primary-color); }
+#stat-views i { color: var(--accent-color); }
+#stat-money i { color: var(--success-color); }
+
+.stat-item .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.stat-item .label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+/* Main Game Layout */
+.game-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr var(--sidebar-width);
+    gap: 1.5rem;
+    padding: 1.5rem;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+}
+
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+}
+
+/* Action Panel (Left) */
+.action-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.video-status-card {
+    text-align: center;
+    background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(0, 0, 0, 0.4));
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.video-status-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,0,0,0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+#video-title {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.progress-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 2rem;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), #ff4d4d);
+    transition: width 0.1s ease-out;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+#status-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Main Buttons */
+.main-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.primary { background-color: var(--primary-color); color: white; }
+.primary:hover { background-color: var(--primary-hover); }
+
+.secondary { background-color: var(--bg-card); color: white; border: 1px solid var(--border-color); }
+.secondary:hover { background-color: #333; }
+
+.success { background-color: var(--success-color); color: white; }
+
+.hidden { display: none; }
+
+/* Upgrade Panel (Right) */
+.upgrade-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0.8rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: color var(--transition-speed);
+}
+
+.tab.active {
+    color: var(--text-main);
+}
+
+.tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Upgrade Card Items */
+.upgrade-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 0.8rem;
+    transition: background var(--transition-speed);
+    cursor: pointer;
+}
+
+.upgrade-item:hover:not(.locked) {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.upgrade-item.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.upgrade-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upgrade-info {
+    flex: 1;
+}
+
+.upgrade-info .name {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.upgrade-info .desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.upgrade-cost {
+    text-align: right;
+}
+
+.cost-value {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+.level-badge {
+    font-size: 0.7rem;
+    background: var(--bg-dark);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text-muted);
+}
+
+/* Mobile Nav */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-dark);
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border-color);
+    justify-content: space-around;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.5rem;
+    gap: 0.2rem;
+}
+
+.nav-item.active {
+    color: var(--primary-color);
+}
+
+.nav-item i {
+    width: 24px;
+    height: 24px;
+}
+
+.nav-item span {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Responsive Scaling */
+@media (max-width: 900px) {
+    .game-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .upgrade-panel {
+        display: none; /* Mobile view will toggle this */
+    }
+
+    .upgrade-panel.mobile-active {
+        display: flex;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 140px);
+        z-index: 50;
+        background: var(--bg-dark);
+        border-radius: 0;
+    }
+
+    .mobile-nav {
+        display: flex;
+    }
+
+    .stats-bar {
+        padding: 0.5rem;
+    }
+
+    .stat-item .value {
+        font-size: 0.9rem;
+    }
+
+    .video-status-card {
+        min-height: 200px;
+    }
+}
+
+/* Animations */
+@keyframes float {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-50px); opacity: 0; }
+}
+
+.float-text {
+    position: fixed;
+    pointer-events: none;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+    animation: float 0.8s ease-out forwards;
+    z-index: 9999;
+}
+
+.notification {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: var(--bg-card);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+    border-left-color: var(--success-color);
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
