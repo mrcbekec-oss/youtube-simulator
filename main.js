@@ -118,7 +118,16 @@ function updateDisplayLoop() {
     if (Math.abs(displayState.views - state.views) < 0.1) displayState.views = state.views;
     if (Math.abs(displayState.money - state.money) < 0.01) displayState.money = state.money;
     
-    updateUI();
+    // Only update stats every frame for smooth counting
+    elements.subs.innerText = formatNumber(Math.floor(displayState.subs));
+    elements.views.innerText = formatNumber(Math.floor(displayState.views));
+    elements.money.innerText = "₺" + formatNumber(displayState.money.toFixed(2));
+    
+    // Update progress bar
+    if (elements.progressBar) {
+        elements.progressBar.style.width = `${state.progress}%`;
+    }
+
     requestAnimationFrame(updateDisplayLoop);
 }
 
@@ -247,29 +256,20 @@ function updateActiveVideos() {
     let totalNewMoney = 0;
 
     state.activeVideos = state.activeVideos.filter(video => {
-        const t = (now - video.publishTime) / 1000; // time in seconds
-        
-        // Logistic Growth Formula: V(t) = K / (1 + A * e^(-rt))
+        const t = (now - video.publishTime) / 1000;
         const cumulativeViews = video.capacity / (1 + video.a * Math.exp(-video.r * t));
         const deltaViews = Math.max(0, cumulativeViews - video.currentViews);
         
-        if (deltaViews > 0.1) {
-            video.currentViews = cumulativeViews;
-            totalNewViews += deltaViews;
-            
-            // User requested: 35% - 45% chance for new subs from views
-            const subRate = 0.35 + (Math.random() * 0.10);
-            totalNewSubs += deltaViews * subRate;
-            
-            // Money also scale with views
-            totalNewMoney += deltaViews * 0.01;
-            
-            // If we reached 98% of capacity, consider the video "done" growing actively
-            return cumulativeViews < video.capacity * 0.98;
-        }
+        video.currentViews = cumulativeViews;
+        totalNewViews += deltaViews;
         
-        // If not growing significantly, remove from active processing
-        return false;
+        const subRate = 0.35 + (Math.random() * 0.10);
+        totalNewSubs += deltaViews * subRate;
+        totalNewMoney += deltaViews * 0.01;
+        
+        // Remove if growth is basically zero AND we are past the initial phase
+        if (t > 10 && deltaViews < 0.01) return false;
+        return cumulativeViews < video.capacity * 0.99;
     });
 
     state.views += totalNewViews;
@@ -301,36 +301,37 @@ function gameTick() {
 
 // --- UI / Helper Functions ---
 
+let lastStage = -1;
 function updateUI() {
-    elements.subs.innerText = formatNumber(Math.floor(displayState.subs));
-    elements.views.innerText = formatNumber(Math.floor(displayState.views));
-    elements.money.innerText = "₺" + formatNumber(displayState.money.toFixed(2));
-    elements.totalVideos.innerText = state.totalVideos;
-    elements.dailyIncome.innerText = "₺" + formatNumber((state.views * 0.001).toFixed(2));
-    
-    elements.progressBar.style.width = `${state.progress}%`;
-    
-    // Stage handling
-    elements.btnRecord.classList.add('hidden');
-    elements.btnEdit.classList.add('hidden');
-    elements.btnUpload.classList.add('hidden');
-    
-    if (state.gameStage === 0) {
-        elements.btnRecord.classList.remove('hidden');
-        elements.statusText.innerText = "Yeni bir video çekmeye başla!";
-    } else if (state.gameStage === 1) {
-        elements.btnEdit.classList.remove('hidden');
-        elements.statusText.innerText = "Görüntüler hazır! Montaja başla.";
-    } else if (state.gameStage === 2) {
-        elements.statusText.innerText = "Montaj yapılıyor... Bekleyin.";
-    } else if (state.gameStage === 3) {
-        elements.btnUpload.classList.remove('hidden');
-        elements.statusText.innerText = "Video hazır! Dünyayla paylaş.";
-    } else if (state.gameStage === 4) {
-        elements.statusText.innerText = "Yükleniyor... Lütfen bekleyin.";
+    // Only update heavy DOM elements if internal state changes
+    if (state.gameStage !== lastStage) {
+        lastStage = state.gameStage;
+        
+        elements.totalVideos.innerText = state.totalVideos;
+        elements.dailyIncome.innerText = "₺" + formatNumber((state.views * 0.001).toFixed(2));
+        
+        // Stage handling
+        elements.btnRecord.classList.add('hidden');
+        elements.btnEdit.classList.add('hidden');
+        elements.btnUpload.classList.add('hidden');
+        
+        if (state.gameStage === 0) {
+            elements.btnRecord.classList.remove('hidden');
+            elements.statusText.innerText = "Yeni bir video çekmeye başla!";
+        } else if (state.gameStage === 1) {
+            elements.btnEdit.classList.remove('hidden');
+            elements.statusText.innerText = "Görüntüler hazır! Montaja başla.";
+        } else if (state.gameStage === 2) {
+            elements.statusText.innerText = "Montaj yapılıyor... Bekleyin.";
+        } else if (state.gameStage === 3) {
+            elements.btnUpload.classList.remove('hidden');
+            elements.statusText.innerText = "Video hazır! Dünyayla paylaş.";
+        } else if (state.gameStage === 4) {
+            elements.statusText.innerText = "Yükleniyor... Lütfen bekleyin.";
+        }
     }
     
-    // Shop buttons update (disabled state if can't afford)
+    // Shop buttons update can be done in gameTick (every 1s) instead of every frame
     const upgradeButtons = document.querySelectorAll('.upgrade-item');
     upgradeButtons.forEach(btn => {
         const cost = parseInt(btn.dataset.cost);
