@@ -101,6 +101,15 @@ function init() {
     
     setupEventListeners();
     
+    // Recovery Logic: If game was closed during a timed process, restart or reset it.
+    if (state.gameStage === 2) {
+        state.gameStage = 1; // Back to editing start
+        startEditing();
+    } else if (state.gameStage === 4) {
+        state.gameStage = 3; // Back to upload start
+        startUploading();
+    }
+    
     // Animation Loop for smooth counters
     requestAnimationFrame(updateDisplayLoop);
 }
@@ -184,7 +193,7 @@ function startEditing() {
     if (state.gameStage !== 1) return;
     
     state.gameStage = 2; // Transitioning to Editing
-    state.progress = 0;
+    // state.progress = 0; // Removed to allow recovery from saved progress
     
     const editTime = 5000 / UPGRADES.pc[state.upgrades.pc - 1].speed;
     const interval = 50;
@@ -206,7 +215,7 @@ function startUploading() {
     if (state.gameStage !== 3) return;
     
     state.gameStage = 4; // Uploading
-    state.progress = 0;
+    // state.progress = 0; // Removed to allow recovery from saved progress
     
     const uploadTime = 3000 / UPGRADES.net[state.upgrades.net - 1].upload;
     const interval = 50;
